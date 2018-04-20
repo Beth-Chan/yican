@@ -3,7 +3,7 @@
         <!-- 左侧商品分类 ref是vue提供的，可以使得better-scroll获取到DOM对象-->
         <div class="menu-wrapper" ref="menu-wrapper">
             <ul>
-                <!-- 遍历goods对象数组 -->
+                <!-- 遍历goods对象数组时会有index值；动态绑定当前索引，如果当前索引等于遍历到的索引，就会有current样式 -->
                 <li v-for="(item,index) in goods" class="menu-item" :class="{'current':currentIndex===index}"
                     @click="selectMenu(index,$event)">
                     <span class="text border-1px">
@@ -35,7 +35,9 @@
                                     <!-- 只有降价商品才有 -->
                                     <span v-show="food.oldPrice" class="old">￥{{food.oldPrice}}</span>
                                 </div>
+                                <!-- 购物车加减数量控件 -->
                                 <div class="cartcontrol-wrapper">
+                                    <!-- cartcontrol组件接收一个food对象 -->
                                     <cartcontrol :food="food" @cart-add="_drop"></cartcontrol>
                                 </div>
                             </div>
@@ -44,9 +46,10 @@
                 </li>
             </ul>
         </div>
+        <!-- :select-food="selectFoods"使goods组件和cartcontrol组件联动起来 -->
         <shopcart ref="shopcart" :select-foods="selectFoods" :delivery-price="seller.deliveryPrice"
                   :min-price="seller.minPrice"></shopcart>
-                  <food :food="selectedFood" ref="food"></food>
+        <food :food="selectedFood" ref="food"></food>
     </div>
 </template>
 
@@ -69,6 +72,7 @@
             return {
                 // 一开始goods是空，当组件被调用时通过后端api去取数据
                 goods: [],
+                // 每个区间高度的数组
                 listHeight: [],
                 scrollY: 0,
                 selectedFood: {}
@@ -77,18 +81,25 @@
         computed: {
             currentIndex() {
                 for (let i = 0; i < this.listHeight.length; i++) {
+                    // 区间的上点
                     let height1 = this.listHeight[i]
+                    // 区间的下点
                     let height2 = this.listHeight[i + 1]
+                    // 如果scrollY落到区间内或者在最后一个区间，返回当前索引；遍历到最后一个区间时i + 1会超出数组最大索引，是undefined
                     if (!height2 || (this.scrollY >= height1 && this.scrollY < height2)) {
                         return i
                     }
                 }
+                // 如果什么都没有，返回0
                 return 0
             },
             selectFoods() {
                 let foods = []
+                // 两层遍历保存所有被选择的food，selectFoods计算属性观测的是goods对象数组
                 this.goods.forEach((good) => {
+                    // goods由foods组成
                     good.foods.forEach((food) => {
+                        // 有count说明这个food是被选择了
                         if (food.count) {
                             foods.push(food)
                         }
@@ -106,7 +117,7 @@
                     this.goods = response.data
                     // vue更新DOM是异步的，在$nextTick里执行异步更新
                     this.$nextTick(() => {
-                        // 初始化，拿到ul的高度，大于外层wrapper的高度就会滚动
+                        // 要保证DOM已经渲染了，初始化，拿到ul的高度，大于外层wrapper的高度就会滚动
                         this._initScroll()
                         this._calHeight()
                     })
@@ -122,14 +133,16 @@
                 })
             },
             _initScroll() {
-                // better-scroll初始化时需要绑定DOM，第二个参数是options对象
+                // better-scroll初始化时需要绑定DOM，第二个参数是options对象，this.$refs就相当于拿到一个原生DOM
                 this.menuScroll = new BScroll(this.$refs['menu-wrapper'], {
+                    // better-scroll监听的原理就是会监听touchstart和touchend事件，会preventDefault()阻止掉默认的，所以要加click: true
                     click: true
                 })
                 this.foodsScroll = new BScroll(this.$refs.foodsWrapper, {
                     click: true,
                     probeType: 3
                 })
+                // better-scroll在滚动时能实时监听鼠标所在位置
                 this.foodsScroll.on('scroll', (pos) => {
                     this.scrollY = Math.abs(Math.round(pos.y))
                 })
@@ -140,24 +153,28 @@
                 this.listHeight.push(height)
                 for (let i = 0; i < foodList.length; i++) {
                     let item = foodList[i]
+                    // 通过DOM的clientHeight接口去获得每个foodList的高度，累加得到每个区间总高度
                     height += item.clientHeight
                     this.listHeight.push(height)
                 }
             },
             selectMenu(index, event) {
+                // 为了避免浏览器默认派发的点击事件
                 if (!event._constructed) {
                     return
                 }
                 let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')
                 let el = foodList[index]
+                // scrollToElement是better-scroll的一个接口，el选项可以是选择器或者元素，300是动画时间
                 this.foodsScroll.scrollToElement(el, 300)
-                console.log(index)
+                // console.log(index)
             },
             selectFood(food, event) {
                 if (!event._constructed) {
                     return
                 }
                 this.selectedFood = food
+                // 拿到food这个子组件，调用food组件它的show方法
                 this.$refs.food.show()
             }
         },
@@ -199,6 +216,7 @@
                 line-height: 14px
                 &.current
                     position: relative
+                    // 要盖住
                     z-index: 10
                     margin-top: -1px
                     background: #FFFFFF

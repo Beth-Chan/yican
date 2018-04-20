@@ -13,27 +13,7 @@ import './common/stylus/index.styl' // 导入stylus文件夹下的index.styl，�
 
 Vue.use(VueRouter) // 使用路由
 Vue.use(VueResource)
-// Vue.use(Vuex)
 Vue.config.productionTip = false
-//
-// let store = new Vuex.Store({
-//   state: {
-//     totalPrice: 0
-//   },
-//   mutations: {
-//     increment (state, price) {
-//       state.totalPrice += price
-//     },
-//     decrement (state, price) {
-//       state.totalPrice -= price
-//     },
-//     actions: {
-//       increase (context) {
-//         // context.commit('increment', price)//在app.vue中dispatch action名increase
-//       }
-//     }
-//   }
-// }),
 
 // 路由配置
 let router = new VueRouter({

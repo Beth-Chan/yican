@@ -18,21 +18,30 @@
                         <span class="now">￥{{food.price}}</span><span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                     </div>
                     <div class="cartcontrol-wrapper">
+                        <!-- 用加减组件要把food传入 -->
                         <cartcontrol :food="food"></cartcontrol>
                     </div>
                     <transition name="fade">
+                        <!-- !food.count || food.count===0这两种情况“加入购物车”都会显示 -->
                         <div @click.stop.prevent="addFirst" class="buy" v-show="!food.count || food.count===0">加入购物车
                         </div>
                     </transition>
                 </div>
+                <!-- 分割组件 -->
                 <split v-show="food.info"></split>
             <div class="info" v-show="food.info">
                 <h1 class="title">商品信息</h1>
                 <p class="text">{{food.info}}</p>
             </div>
+            <!-- 分割组件 -->
             <split></split>
             <div class="rating">
                 <h1 class="title">商品评价</h1>
+                <!-- ratingselect组件：
+                    要有一个变量控制是否显示“只看有内容的评价”
+                    一个变量控制选择的类型
+                    一个保存所有评价的数组
+                    还有描述文字（商品详情页的全部、推荐、吐槽和评价页的全部、满意、不满意） -->
                 <ratingselect :selectType="selectType" :onlyContent="onlyContent" :desc="desc" :ratings="food.ratings"></ratingselect>
                 <div class="rating-wrapper">
                     <ul v-show="food.ratings && food.ratings.length">
@@ -47,7 +56,6 @@
                     <div class="no-ratings" v-show="!food.ratings ||  food.ratings.length">暂无评价</div>
                 </div>
             </div>
-
             </div>
         </div>
     </transition>
@@ -66,7 +74,7 @@
 
     export default {
         props: {
-            food: {
+            food: { // 从goods组件接收一个food
                 type: Object
             }
         },
@@ -102,11 +110,11 @@
                 this.showFlag = false
             },
             addFirst(event) {
-//                console.log('click')
 //                if (event._constructed) {
 //                    return
 //                }
 //                console.log(event.target)
+                // 触发小球动画。附加参数会传给监听器回调。
                 eventBus.$emit('add', event.target)
                 Vue.set(this.food, 'count', 1)
             },
@@ -162,10 +170,13 @@
         position: fixed
         left: 0
         top: 0
+        // 底部有购物车
         bottom: 48px
+        // 小于购物车，也要小于弹出的遮罩层
         z-index: 30
         width: 100%
         background: #fff
+        // 从右到左的动画
         transform: translate3d(0, 0, 0)
         &.move-enter-active, &.move-leave-active
             transition: all 0.2s linear
@@ -175,6 +186,7 @@
             position: relative
             width: 100%
             height: 0
+            // 不靠图片本身就能把容器的高度撑开，实现自适应；当margin/padding取形式为百分比的值时，无论是left/right，还是top/bottom，都是以父元素的width为参照，关键在于：容器margin/padding的百分比参照物是父元素的宽度，而容器的width的百分比参照物也是父元素的宽度，俩属性参照物一致，那这俩属性的值就统一起来
             padding-top: 100%
             img
                 position: absolute
@@ -187,7 +199,9 @@
                 top: 10px
                 left: 0
                 .icon-arrow_lift
+                    // 要加padding所以就要加display: block 
                     display: block
+                    // 加padding是为了让这个按钮可点击区域变大
                     padding: 10px
                     font-size: 20px
                     color: #FFFFFF
@@ -224,7 +238,7 @@
             .cartcontrol-wrapper
                 position: absolute
                 right: 12px
-                bottoom: 12px
+                bottom: 12px
             .buy
                 position: absolute
                 right: 18px

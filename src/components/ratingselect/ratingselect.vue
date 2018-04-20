@@ -18,7 +18,7 @@
     const ALL = 2
 
     export default {
-        props: {
+        props: { // 要有一个变量控制是否显示“只看有内容的评价”；一个变量控制选择的类型；一个保存所有评价的数组；还有描述文字（商品详情页的全部、推荐、吐槽和评价页的全部、满意、不满意）
             ratings: {
                 type: Array,
                 default() {
@@ -62,6 +62,7 @@
                     return
                 }
                 this.selectType = type
+                // 触发父组件food组件的select事件
                 this.$emit('select', type)
             },
             toggleContent(event) {
